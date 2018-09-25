@@ -19,6 +19,8 @@ module AES
     fun evp_sha256 = EVP_sha256
     fun evp_sha512 = EVP_sha512
     fun evp_aes_256_cbc = EVP_aes_256_cbc
+    fun evp_aes_128_cbc = EVP_aes_128_cbc
+    fun evp_aes_192_cbc = EVP_aes_192_cbc
     fun evp_bytes_to_key = EVP_BytesToKey
     fun evp_cipher_ctx_init = EVP_CIPHER_CTX_reset
     fun evp_cipher_init_ex = EVP_CipherInit_ex
