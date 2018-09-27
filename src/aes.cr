@@ -44,15 +44,43 @@ lib OpenSSL
 end
 
 class AES
-  getter ctx : OpenSSL::EvpCipherCtx = OpenSSL::EvpCipherCtx.new
-  getter mode : Int32 = 256
+  getter encrypt_context : OpenSSL::EvpCipherCtx = OpenSSL::EvpCipherCtx.new
+  getter decrypt_context : OpenSSL::EvpCipherCtx = OpenSSL::EvpCipherCtx.new
+  getter bits : Int32 = 256
   getter key : Slice(UInt8)
   getter iv : Slice(UInt8)
-  getter salt : Slice(UInt8)
 
-  SUPPORTED_MODES = [128, 192, 256]
+  SUPPORTED_BITSIZES = [128, 192, 256]
 
-  def initialize(mode : Int32, key : Slice(UInt8), iv : Slice(UInt8), salt : Slice(UInt8))
+  def initialize(key : Slice(UInt8), iv : Slice(UInt8), bits : Int32 = 256)
+    en = pointerof(@encrypt_context)
+    de = pointerof(@decrypt_context)
+    OpenSSL.evp_cipher_ctx_init(en)
+    OpenSSL.evp_cipher_ctx_init(de)
+    case bits
+    when 128
+      OpenSSL.evp_encrypt_init_ex(en, OpenSSL.evp_aes_128_cbc(), nil, key, iv)
+      OpenSSL.evp_decrypt_init_ex(de, OpenSSL.evp_aes_128_cbc(), nil, key, iv)
+    when 192
+      OpenSSL.evp_encrypt_init_ex(en, OpenSSL.evp_aes_192_cbc(), nil, key, iv)
+      OpenSSL.evp_decrypt_init_ex(de, OpenSSL.evp_aes_192_cbc(), nil, key, iv)
+    when 256
+      OpenSSL.evp_encrypt_init_ex(en, OpenSSL.evp_aes_256_cbc(), nil, key, iv)
+      OpenSSL.evp_decrypt_init_ex(de, OpenSSL.evp_aes_256_cbc(), nil, key, iv)
+    else
+      raise "bits must be one of #{SUPPORTED_BITSIZES}"
+    end
+    @bits = bits
+    @key = key
+    @iv = iv
+  end
+end
 
+crypto = AES.new("testing".as_slice, "testing".as_slice, 256)
+
+class String
+  def as_slice
+    bts = bytes
+    Slice.new bts.to_unsafe, bts.size
   end
 end
