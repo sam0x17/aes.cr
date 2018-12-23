@@ -82,8 +82,6 @@ class AES
     OpenSSL.evp_encrypt_init_ex(pointerof(@encrypt_context), nil, nil, nil, nil)
     OpenSSL.evp_encrypt_update(pointerof(@encrypt_context), ciphertext.to_unsafe, pointerof(c_len), data, data.size)
     OpenSSL.evp_encrypt_final_ex(pointerof(@encrypt_context), ciphertext.to_unsafe + c_len, pointerof(f_len))
-    puts "c_len: #{c_len}"
-    puts "f_len: #{f_len}"
     ciphertext[0, f_len + c_len]
   end
 
