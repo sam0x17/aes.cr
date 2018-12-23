@@ -74,13 +74,37 @@ class AES
     @key = key
     @iv = iv
   end
+
+  def encrypt(data : Slice(UInt8))
+    c_len = data.size + OpenSSL::EVP_MAX_BLOCK_LENGTH
+    f_len = 0
+    ciphertext = Slice.new(c_len, 0u8)
+    OpenSSL.evp_encrypt_init_ex(pointerof(@encrypt_context), nil, nil, nil, nil)
+    OpenSSL.evp_encrypt_update(pointerof(@encrypt_context), ciphertext.to_unsafe, pointerof(c_len), data, data.size)
+    OpenSSL.evp_encrypt_final_ex(pointerof(@encrypt_context), ciphertext.to_unsafe + c_len, pointerof(f_len))
+    puts "c_len: #{c_len}"
+    puts "f_len: #{f_len}"
+    ciphertext[0, f_len + c_len]
+  end
+
+  def decrypt(data : Slice(UInt8))
+    p_len = data.size
+    len = data.size
+    f_len = 0
+    plaintext = Slice.new(p_len, 0u8)
+    OpenSSL.evp_decrypt_init_ex(pointerof(@decrypt_context), nil, nil, nil, nil)
+    OpenSSL.evp_decrypt_update(pointerof(@decrypt_context), plaintext.to_unsafe, pointerof(p_len), data.to_unsafe, len)
+    OpenSSL.evp_decrypt_final_ex(pointerof(@decrypt_context), plaintext.to_unsafe + p_len, pointerof(f_len))
+    plaintext[0, p_len + f_len]
+  end
 end
 
-crypto = AES.new("testing".as_slice, "testing".as_slice, 256)
+crypto = AES.new("dddddddddddddddddddddddddddddddd".as_slice, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".as_slice, 256)
+puts String.new(crypto.decrypt(crypto.encrypt("hey this is a test and I would love to see you try this test out and really nail it so that we can see if things encrypt and yeah hey".as_slice)))
 
 class String
   def as_slice
     bts = bytes
-    Slice.new bts.to_unsafe, bts.size
+    Slice.new(bts.to_unsafe, bts.size)
   end
 end
