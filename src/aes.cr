@@ -51,6 +51,33 @@ class AES
   getter iv : Slice(UInt8)
 
   SUPPORTED_BITSIZES = [128, 192, 256]
+  READABLE_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()_+=-?/>.<,;:]}[{|".chars
+  CHARS = (0_u8..255_u8).to_a
+
+  def self.generate_key(length = 32)
+    key = ""
+    length.times { key += CHARS.sample.chr }
+    key
+  end
+
+  def self.generate_key_readable(length = 32)
+    key = ""
+    length.times { key += READABLE_CHARS.sample }
+    key
+  end
+
+  def initialize
+    initialize(AES.generate_key_readable(32), AES.generate_key_readable(32), 256)
+  end
+
+  def initialize(bits : Int32 = 256)
+    keysize = bits == 256 ? 32 : 16
+    initialize(AES.generate_key_readable(keysize), AES.generate_key_readable(keysize), bits)
+  end
+
+  def initialize(key : String, iv : String, bits : Int32 = 256)
+    initialize(key.as_slice, iv.as_slice, bits)
+  end
 
   def initialize(key : Slice(UInt8), iv : Slice(UInt8), bits : Int32 = 256)
     en = pointerof(@encrypt_context)
@@ -96,9 +123,6 @@ class AES
     plaintext[0, p_len + f_len]
   end
 end
-
-crypto = AES.new("dddddddddddddddddddddddddddddddd".as_slice, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".as_slice, 256)
-puts String.new(crypto.decrypt(crypto.encrypt("hey this is a test and I would love to see you try this test out and really nail it so that we can see if things encrypt and yeah hey".as_slice)))
 
 class String
   def as_slice
