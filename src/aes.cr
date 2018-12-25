@@ -49,6 +49,7 @@ class AES
   getter bits : Int32 = 256
   getter key : Slice(UInt8)
   getter iv : Slice(UInt8)
+  property nonce_size : Int32 = 2
 
   SUPPORTED_BITSIZES = [128, 192, 256]
   READABLE_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()_+=-?/>.<,;:]}[{|".chars
@@ -103,6 +104,10 @@ class AES
   end
 
   def encrypt(data : Slice(UInt8))
+    tmp = Slice.new(data.size + nonce_size, 0u8)
+    data.copy_to(tmp)
+    data = tmp
+    nonce_size.times { |i| data[data.size - i - 1] = CHARS.sample }
     c_len = data.size + OpenSSL::EVP_MAX_BLOCK_LENGTH
     f_len = 0
     ciphertext = Slice.new(c_len, 0u8)
@@ -124,7 +129,7 @@ class AES
     OpenSSL.evp_decrypt_init_ex(pointerof(@decrypt_context), nil, nil, nil, nil)
     OpenSSL.evp_decrypt_update(pointerof(@decrypt_context), plaintext.to_unsafe, pointerof(p_len), data.to_unsafe, len)
     OpenSSL.evp_decrypt_final_ex(pointerof(@decrypt_context), plaintext.to_unsafe + p_len, pointerof(f_len))
-    plaintext[0, p_len + f_len]
+    plaintext[0, p_len + f_len - nonce_size]
   end
 
   def decrypt(str : String)

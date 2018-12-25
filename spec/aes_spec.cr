@@ -28,4 +28,36 @@ describe AES do
       String.new(crypto.decrypt(crypto.encrypt(STR1.as_slice))).should eq STR1
     end
   end
+
+  it "varies encryption with each subsequent run (e.g. uses a nonce)" do
+    crypto = AES.new
+    prev = ""
+    10.times do
+      current = crypto.encrypt(STR1)
+      current.should_not eq prev
+      prev = current
+    end
+  end
+
+  it "does not vary encryption when nonce_size is 0" do
+    crypto = AES.new
+    crypto.nonce_size = 0
+    prev = ""
+    10.times do
+      current = crypto.encrypt(STR1)
+      (current.should eq prev) if prev != ""
+      prev = current
+    end
+  end
+
+  it "supports various nonce sizes" do
+    crypto = AES.new
+    prev = ""
+    10.times do
+      crypto.nonce_size = (0..20).to_a.sample
+      current = crypto.encrypt(STR1)
+      current.should_not eq prev
+      prev = current
+    end
+  end
 end
