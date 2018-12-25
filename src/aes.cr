@@ -112,6 +112,10 @@ class AES
     ciphertext[0, f_len + c_len]
   end
 
+  def encrypt(str : String)
+    encrypt(str.as_slice)
+  end
+
   def decrypt(data : Slice(UInt8))
     p_len = data.size
     len = data.size
@@ -121,6 +125,10 @@ class AES
     OpenSSL.evp_decrypt_update(pointerof(@decrypt_context), plaintext.to_unsafe, pointerof(p_len), data.to_unsafe, len)
     OpenSSL.evp_decrypt_final_ex(pointerof(@decrypt_context), plaintext.to_unsafe + p_len, pointerof(f_len))
     plaintext[0, p_len + f_len]
+  end
+
+  def decrypt(str : String)
+    decrypt(str.as_slice)
   end
 end
 
