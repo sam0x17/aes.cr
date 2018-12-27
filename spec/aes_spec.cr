@@ -53,7 +53,7 @@ describe AES do
   it "supports various nonce sizes" do
     crypto = AES.new
     prev = ""
-    10.times do
+    100.times do
       crypto.nonce_size = (0..20).to_a.sample
       current = crypto.encrypt(STR1)
       current.should_not eq prev
