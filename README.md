@@ -1,37 +1,31 @@
 # aes.cr
 
-TODO: Write a description here
+Wrapper for openssl's AES encryption and decryption functionality.
 
 ## Installation
+
+OpenSSL development packages are required for this shard to build.
+On apt-based systems this can be installed via `sudo apt install libssl-dev`.
 
 Add this to your application's `shard.yml`:
 
 ```yaml
 dependencies:
   aes.cr:
-    github: your-github-user/aes.cr
+    github: sam0x17/aes.cr
 ```
 
 ## Usage
 
 ```crystal
-require "aes.cr"
+require "aes"
+
+aes = AES.new
+puts aes.decrypt(aes.encrypt("hello world")) # => "hello world"
+data = Bytes[0, 33, 128, 145, 77, 43, 32, 189, 250, 123]
+puts aes.encrypt(data) # => encrypted bytes
+puts aes.iv
+puts aes.key
 ```
 
-TODO: Write usage instructions here
-
-## Development
-
-TODO: Write development instructions here
-
-## Contributing
-
-1. Fork it (<https://github.com/your-github-user/aes.cr/fork>)
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create a new Pull Request
-
-## Contributors
-
-- [your-github-user](https://github.com/your-github-user) Sam Johnson - creator, maintainer
+See `src/aes.cr` for full API info. Streaming is supported.
