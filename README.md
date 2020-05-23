@@ -11,7 +11,7 @@ Add this to your application's `shard.yml`:
 
 ```yaml
 dependencies:
-  aes.cr:
+  aes:
     github: sam0x17/aes.cr
 ```
 
