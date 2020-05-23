@@ -52,13 +52,13 @@ class AES
 
   def self.generate_key(length = 32)
     key = ""
-    length.times { key += CHARS.sample.chr }
+    length.times { key += CHARS.sample(Random::Secure).chr }
     key
   end
 
   def self.generate_key_readable(length = 32)
     key = ""
-    length.times { key += READABLE_CHARS.sample }
+    length.times { key += READABLE_CHARS.sample(Random::Secure) }
     key
   end
 
@@ -102,7 +102,7 @@ class AES
     tmp = Slice.new(data.size + nonce_size, 0u8)
     data.copy_to(tmp)
     data = tmp
-    nonce_size.times { |i| data[data.size - i - 1] = CHARS.sample }
+    nonce_size.times { |i| data[data.size - i - 1] = CHARS.sample(Random::Secure) }
     c_len = data.size + LibCrypto::EVP_MAX_BLOCK_LENGTH
     f_len = 0
     ciphertext = Slice.new(c_len, 0u8)
