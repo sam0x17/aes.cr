@@ -72,7 +72,7 @@ class AES
   end
 
   def initialize(key : String, iv : String, bits : Int32 = 256)
-    initialize(key.as_slice, iv.as_slice, bits)
+    initialize(key.to_slice, iv.to_slice, bits)
   end
 
   def initialize(key : Slice(UInt8), iv : Slice(UInt8), bits : Int32 = 256)
@@ -113,7 +113,7 @@ class AES
   end
 
   def encrypt(str : String)
-    encrypt(str.as_slice)
+    encrypt(str.to_slice)
   end
 
   def decrypt(data : Slice(UInt8))
@@ -128,13 +128,6 @@ class AES
   end
 
   def decrypt(str : String)
-    decrypt(str.as_slice)
-  end
-end
-
-class String
-  def as_slice
-    bts = bytes
-    Slice.new(bts.to_unsafe, bts.size)
+    decrypt(str.to_slice)
   end
 end
