@@ -47,8 +47,8 @@ class AES
   property nonce_size : Int32 = 2
 
   SUPPORTED_BITSIZES = [128, 192, 256]
-  READABLE_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()_+=-?/>.<,;:]}[{|".chars
-  CHARS = (0_u8..255_u8).to_a
+  READABLE_CHARS     = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()_+=-?/>.<,;:]}[{|".chars
+  CHARS              = (0_u8..255_u8).to_a
 
   def self.generate_key(length = 32)
     key = ""
@@ -82,14 +82,14 @@ class AES
     LibCrypto.evp_cipher_ctx_init(de)
     case bits
     when 128
-      LibCrypto.evp_encrypt_init_ex(en, LibCrypto.evp_aes_128_cbc(), nil, key, iv)
-      LibCrypto.evp_decrypt_init_ex(de, LibCrypto.evp_aes_128_cbc(), nil, key, iv)
+      LibCrypto.evp_encrypt_init_ex(en, LibCrypto.evp_aes_128_cbc, nil, key, iv)
+      LibCrypto.evp_decrypt_init_ex(de, LibCrypto.evp_aes_128_cbc, nil, key, iv)
     when 192
-      LibCrypto.evp_encrypt_init_ex(en, LibCrypto.evp_aes_192_cbc(), nil, key, iv)
-      LibCrypto.evp_decrypt_init_ex(de, LibCrypto.evp_aes_192_cbc(), nil, key, iv)
+      LibCrypto.evp_encrypt_init_ex(en, LibCrypto.evp_aes_192_cbc, nil, key, iv)
+      LibCrypto.evp_decrypt_init_ex(de, LibCrypto.evp_aes_192_cbc, nil, key, iv)
     when 256
-      LibCrypto.evp_encrypt_init_ex(en, LibCrypto.evp_aes_256_cbc(), nil, key, iv)
-      LibCrypto.evp_decrypt_init_ex(de, LibCrypto.evp_aes_256_cbc(), nil, key, iv)
+      LibCrypto.evp_encrypt_init_ex(en, LibCrypto.evp_aes_256_cbc, nil, key, iv)
+      LibCrypto.evp_decrypt_init_ex(de, LibCrypto.evp_aes_256_cbc, nil, key, iv)
     else
       raise "bits must be one of #{SUPPORTED_BITSIZES}"
     end
