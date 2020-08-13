@@ -64,4 +64,22 @@ describe AES do
       prev = current
     end
   end
+
+  it "raises on failed decryption (corrupted data)" do
+    crypto = AES.new
+    encrypted = crypto.encrypt(STR1)
+    encrypted.shuffle!
+    expect_raises(AES::Error) do
+      crypto.decrypt(encrypted)
+    end
+  end
+
+  it "raises on failed decryption (wrong key)" do
+    crypto_bob = AES.new
+    encrypted = crypto_bob.encrypt(STR1)
+    crypto_alice = AES.new
+    expect_raises(AES::Error) do
+      crypto_alice.decrypt(encrypted)
+    end
+  end
 end

@@ -36,6 +36,8 @@ lib LibCrypto
   fun evp_aes_192_cbc = EVP_aes_192_cbc : EvpCipher
   fun evp_aes_256_cbc = EVP_aes_256_cbc : EvpCipher
   fun evp_cipher_ctx_init = EVP_CIPHER_CTX_reset(c : EvpCipherCtx*) : LibC::Int
+  fun get_error = ERR_get_error : LibC::ULong
+  fun get_error_string = ERR_error_string(code : LibC::ULong, buf : Pointer(LibC::Char)) : Pointer(Char)
 end
 
 class AES
@@ -106,9 +108,15 @@ class AES
     c_len = data.size + LibCrypto::EVP_MAX_BLOCK_LENGTH
     f_len = 0
     ciphertext = Slice.new(c_len, 0u8)
-    LibCrypto.evp_encrypt_init_ex(pointerof(@encrypt_context), nil, nil, nil, nil)
-    LibCrypto.evp_encrypt_update(pointerof(@encrypt_context), ciphertext.to_unsafe, pointerof(c_len), data, data.size)
-    LibCrypto.evp_encrypt_final_ex(pointerof(@encrypt_context), ciphertext.to_unsafe + c_len, pointerof(f_len))
+    if LibCrypto.evp_encrypt_init_ex(pointerof(@encrypt_context), nil, nil, nil, nil) != 1
+      raise_ssl_error("evp_encrypt_init")
+    end
+    if LibCrypto.evp_encrypt_update(pointerof(@encrypt_context), ciphertext.to_unsafe, pointerof(c_len), data, data.size) != 1
+      raise_ssl_error("evp_encrypt_update")
+    end
+    if LibCrypto.evp_encrypt_final_ex(pointerof(@encrypt_context), ciphertext.to_unsafe + c_len, pointerof(f_len)) != 1
+      raise_ssl_error("evp_encrypt_final")
+    end
     ciphertext[0, f_len + c_len]
   end
 
@@ -121,13 +129,43 @@ class AES
     len = data.size
     f_len = 0
     plaintext = Slice.new(p_len, 0u8)
-    LibCrypto.evp_decrypt_init_ex(pointerof(@decrypt_context), nil, nil, nil, nil)
-    LibCrypto.evp_decrypt_update(pointerof(@decrypt_context), plaintext.to_unsafe, pointerof(p_len), data.to_unsafe, len)
-    LibCrypto.evp_decrypt_final_ex(pointerof(@decrypt_context), plaintext.to_unsafe + p_len, pointerof(f_len))
+    if LibCrypto.evp_decrypt_init_ex(pointerof(@decrypt_context), nil, nil, nil, nil) != 1
+      raise_ssl_error("evp_decrypt_init")
+    end
+    if LibCrypto.evp_decrypt_update(pointerof(@decrypt_context), plaintext.to_unsafe, pointerof(p_len), data.to_unsafe, len) != 1
+      raise_ssl_error("evp_decrypt_update")
+    end
+    if LibCrypto.evp_decrypt_final_ex(pointerof(@decrypt_context), plaintext.to_unsafe + p_len, pointerof(f_len)) != 1
+      raise_ssl_error("evp_decrypt_final")
+    end
     plaintext[0, p_len + f_len - nonce_size]
   end
 
   def decrypt(str : String)
-    decrypt(str.to_slice)
+    decrypt(str.as_slice)
+  end
+
+  class Error < Exception
+    getter call
+    getter code
+    getter reason
+
+    def initialize(@call : String, @code : UInt64, @reason : String)
+      super("OpenSSL returned an error: #{@reason} (function: #{call}, code: #{@code})")
+    end
+  end
+
+  private def raise_ssl_error(func : String)
+    code = LibCrypto.get_error
+    reason = LibCrypto.get_error_string(code, nil)
+    instance = Error.new(func, code, String.new(reason))
+    raise instance
+  end
+end
+
+class String
+  def as_slice
+    bts = bytes
+    Slice.new(bts.to_unsafe, bts.size)
   end
 end
